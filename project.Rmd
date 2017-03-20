@@ -10,6 +10,9 @@ library(gridExtra)
 
 library(knitr)
 
+library(GGally)
+
+library(dplyr)
 
 ```
 
@@ -30,21 +33,76 @@ str(wine_data)
 
 # Univariate Plots Section
 
+First I will check the distribution of my featured variable: quality.
+
+```{r echo=FALSE}
+ggplot(aes(x = quality), data = wine_data, binwidth = 1) +
+  geom_bar(fill="white",colour="black")
+
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE}
+summary(wine_data$quality)
+```
+
+In this histogram I can see that most of the values are binned in quality 
+range of 5 - 6. To see the distribution better I will transform the plot 
+using scale_y_log10.
+
+```{r echo=FALSE,message=FALSE, warning=FALSE}
+ggplot(aes(x = quality), data = wine_data) + 
+  geom_bar() +
+  scale_y_log10()
+```
+
+Transforming the plot with log10 shows me a normal distribution.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = alcohol), data = wine_data) +
+  geom_histogram(fill="white",colour="black")
+
+```
 
 ```{r echo=FALSE}
 
 summary(wine_data$alcohol)
 
 ```
-Summarising the alcohol variable
 
+With this histogram I wanted to see which alcohol consistensy is the most 
+popular. I can now see that there are some outliers which I will try to adress
+later.
+
+Now I will draw a histogram of violatile.acidity distribution:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = volatile.acidity), data = wine_data) +
+  geom_histogram(fill="white",colour="black")
+
+```
 ```{r echo=FALSE}
-ggplot(aes(x = alcohol), data = wine_data) +
+
+summary(wine_data$volatile.acidity)
+
+```
+According to summary, the 3rd quartile is 0.64 and the max value is 1.58 which
+tells me that there is a possibility of outlier here.
+
+Finaly I will check the distribution of pH levels
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = pH), data = wine_data) +
   geom_histogram(fill="white",colour="black")
 
 ```
 
-With this histogram I wanted to see which alcohol consistensy is the most popular.
+```{r echo=FALSE}
+
+summary(wine_data$pH)
+
+```
+
+This looks like a normal distribution to me. With min value 2.7 and max value 4.
 
 ```{r echo=FALSE}
 
@@ -52,45 +110,85 @@ summary(subset(wine_data, quality == 8))
 
 ```
 
-Now I checked the most popular alcohol proof and with the highest quality which is 8. After ploting I gues that the quality doesn't really depend purely on the alcohol concentration. The plot looks similar to uniform distribution plot.
-```{r echo=FALSE}
+Now I checked the most popular alcohol proof and with the highest quality which
+is 8. After ploting I gues that the quality doesn't really depend purely on the 
+alcohol concentration. The plot looks similar to uniform distribution plot.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 qplot(data = subset(wine_data, quality == 8), x = alcohol) +
   geom_histogram(fill="white",colour="black")
 
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-```{r echo=FALSE}
+alcohol_high_quality <- subset(wine_data$alcohol, wine_data$quality == 8)
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+summary(alcohol_high_quality)
+
+```
+
+The highest quality wine has the minimum alcohol percentage of 9.8 and maximum 
+of 14.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot1 <- qplot(data = subset(wine_data, quality > 5), x = alcohol) +
   geom_histogram(fill="white",colour="black") +
-  labs(list(title = "Wines with quality lower than 5", x = "Alcohol percentage", y = "Count")) +
+  labs(list(title = "Wines with quality lower than 5", x = "Alcohol percentage",
+            y = "Count")) +
   coord_cartesian(ylim = c(0, 200))
 
 plot2 <- qplot(data = subset(wine_data, quality <= 5), x = alcohol) +
   geom_histogram(fill="white",colour="black") + 
-  labs(list(title = "Wines with quality greater than 5", x = "Alcohol percentage", y = "Count")) +
+  labs(list(title= "Wines with quality greater than 5", x= "Alcohol percentage",
+            y= "Count")) +
   coord_cartesian(ylim = c(0, 200))
 grid.arrange(plot1, plot2, ncol=2)
 ```
+```{r echo=FALSE}
+summary(subset(wine_data$alcohol, wine_data$quality > 5))
+```
+```{r echo=FALSE}
+summary(subset(wine_data$alcohol, wine_data$quality <= 5))
+```
 
 Compared the alcohol percentage of highest quality wine and the lowest.
-To compare 2 plots I used coord_cortesian function so that my both Y axis would be the same height. From the plots I could gues that lower quality wines have a higher chance of having higher alcohol percentage.
+To compare 2 plots I used coord_cortesian function so that my both Y axis would
+be the same height. From the plots I could gues that lower quality wines have a
+higher chance of having higher alcohol percentage. I got that higher quality
+wines have higher alcohol values than lower quality wines. But the lower quality
+wine has the max value for wine of 14.9 %.
 
 Could there be any relationship between volatile acidity and quality?
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot3 <- qplot(data = subset(wine_data, quality > 5), x = volatile.acidity) +
   geom_histogram(fill="white",colour="black") +
-  labs(list(title = "Wines with quality lower than 5", x = "volatile.acidity", y = "Count")) +
+  labs(list(title = "Wines with quality lower than 5", x = "volatile.acidity",
+            y = "Count")) +
   coord_cartesian(ylim = c(0, 130))
 
 plot4 <- qplot(data = subset(wine_data, quality <= 5), x = volatile.acidity) +
   geom_histogram(fill="white",colour="black") + 
-  labs(list(title = "Wines with quality greater than 5", x = "volatile.acidity", y = "Count")) +
+  labs(list(title = "Wines with quality greater than 5", 
+            x = "volatile.acidity",
+            y = "Count")) +
   coord_cartesian(ylim = c(0, 130))
 grid.arrange(plot3, plot4, ncol=2)
 ```
+```{r echo=FALSE}
+summary(subset(wine_data$volatile.acidity, wine_data$quality > 5))
+```
+```{r echo=FALSE}
+summary(subset(wine_data$volatile.acidity, wine_data$quality <= 5))
+```
 
-I can see that the better quality wines ten to be less acidic.
+I can see that the better quality wines ten to be less acidic. I can also see
+that lower quality wine has an outlier which increases the x axis. Since the 
+3rd quartile is 0.68 and the max value is 1.58 I would asume that theres a
+pretty big outlier there. 
 
 
 # Univariate Analysis
@@ -115,67 +213,88 @@ There are no ordered factor variables in this data set.
 
 ### What is/are the main feature(s) of interest in your dataset
 
-My main interest in this data set is quality. I want to figure out what variable influance the quality of wine the most.
+My main interest in this data set is quality. I want to figure out what variable
+influance the quality of wine the most.
 
-### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+### What other features in the dataset do you think will help support your
+investigation into your feature(s) of interest?
  
-The other features that will help support my investigation will be alcohol percentage, acidity and pH.
+The other features that will help support my investigation will be alcohol
+percentage, acidity and pH.
 
 ### Did you create any new variables from existing variables in the dataset?
 
 No
 
-### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+### Of the features you investigated, were there any unusual distributions? Did
+you perform any operations on the data to tidy, adjust, or change the form of 
+the data? If so, why did you do this?
 
-When I was ploting 2 plots side by side of alcohol percentage, the Y axis of both of these histograms were different height. To better compare the 2 histograms I used coord_cartesian(ylim = c(0, 130)) to equalize the heights of axis.
+When I was ploting 2 plots side by side of alcohol percentage, the Y axis of 
+both of these histograms were different height. To better compare the 2 
+histograms I used coord_cartesian(ylim = c(0, 130)) to equalize the heights of
+axis.
 
 # Bivariate Plots Section
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-cor(wine_data)
+ggcorr(wine_data,label = TRUE,hjust = .9, size = 3, label_size = 3, 
+       label_round = 2, label_alpha = TRUE)
      
 ```
 
-First I checked for correlations I use cor function and check correlation between each of the variables.
+First I checked for correlations I use cor function and check correlation 
+between each of the variables.
 
-I can now see that the quality has the stronges correlation between these variables: volatile.acidity, sulphates and alcohol. I was right about that alcohol and volatile acidity could be the biggest factors for change in quality, i was wrong about pH though.
+I can now see that the quality has the strongest correlation between these 
+variables: volatile.acidity, sulphates and alcohol. I was right about that
+alcohol and volatile acidity could be the biggest factors for change in quality,
+i was wrong about pH though.
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = alcohol, y = quality), data = wine_data) +
   geom_jitter(alpha = 1/5)  
 
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(quality, alcohol) %>%
+  summarize())
+
+cor(wine_data$alcohol, wine_data$quality)
+```
+
+Checked the correlation between these variables.
 
 I used a scaterplot to see a relationship between alcohol and quality.
 
-In this plot I can see some points that are above 8. I run the max() on quality variable to check for max value.
+In this plot I can see some points that are above 8. I run the max() on quality
+variable to check for max value.
 
-```{r echo=FALSE}
-
-max(wine_data$quality)
-
-```
-
-I get that max value for quality is 8, but my scatter plot shows some points that are above 8. Later I figured out that geom_jitter scatters the points and when running geom_point it shows the right values.
+I get that max value for quality is 8, but my scatter plot shows some points 
+that are above 8. Later I figured out that geom_jitter scatters the points and
+when running geom_point it shows the right values.
 
 Transforming the y axis to show median and means.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = alcohol, y = quality), data = wine_data) +
   geom_jitter(stat = 'summary', fun.y = median)  
 
 ```
-```{r echo=FALSE}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = alcohol, y = quality), data = wine_data) +
   geom_jitter(stat = 'summary', fun.y = mean)  
 
 ```
+
 ```{r echo=FALSE}
 
 ggplot(aes(x = alcohol, y = quality), data = wine_data) +
@@ -183,7 +302,8 @@ ggplot(aes(x = alcohol, y = quality), data = wine_data) +
 
 ```
 
-The plots show some correlation. Increasing the alcohol percentage might increase the quality. But I might be wrong.
+The plots show some correlation. Increasing the alcohol percentage might 
+increase the quality. But I might be wrong.
 
 Plotting boxplots.
 
@@ -192,19 +312,37 @@ ggplot(aes(x = quality, y = alcohol), data = wine_data) +
   geom_boxplot(aes(group=quality))  
 
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(quality, alcohol) %>%
+  summarize())
 
-This boxplot also shows that wines with higher alcohol percentage is rated better in quality.
+cor(wine_data$alcohol, wine_data$quality)
+
+```
+
+This boxplot also shows that wines with higher alcohol percentage is rated 
+better in quality.
 
 Checking quality by volatile.acidity.
 
 ```{r echo=FALSE}
 
 ggplot(aes(x = volatile.acidity, y = quality), data = wine_data) +
-  geom_point()  
+  geom_jitter(alpha = 1/5)  
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(quality, volatile.acidity) %>%
+  summarize())
+
+cor(wine_data$volatile.acidity, wine_data$quality)
 
 ```
 
-The scatterplot seems a bit linear. I want to scatter it a bit more to see the trends, so I will calculate and apply means to Y axis.
+The scatterplot seems a bit linear. I want to scatter it a bit more to see the
+trends, so I will calculate and apply means to Y axis.
 
 ```{r echo=FALSE}
 
@@ -224,48 +362,79 @@ ggplot(aes(x = quality, y = volatile.acidity), data = wine_data) +
 
 ```
 
-From these boxplots I can see the trend that the quality decreases if acidity increases. I can see some outliers here which might increase the means. I will use summary to check for the max and mean values.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-```{r echo=FALSE}
+summary(wine_data %>%
+  group_by(quality, volatile.acidity) %>%
+  summarize())
 
-summary(wine_data$volatile.acidity)
+cor(wine_data$volatile.acidity, wine_data$quality)
 
 ```
 
+From these boxplots I can see the trend that the quality decreases if acidity
+increases. I can see some outliers here which might increase the means. I will
+use summary to check for the max and mean values.
+
 I can see some outliers, so i created a plot without them.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 
 ggplot(aes(x = quality, y = volatile.acidity), data = wine_data) +
   geom_boxplot(aes(group=quality), outlier.shape = NA) +
-  scale_y_continuous(limits = quantile(wine_data$volatile.acidity, c(0.1, 0.9)))
+  scale_y_continuous(limits = quantile(wine_data$volatile.acidity, c(0.1, 0.9)
+                                       ))
 
 ```
 
-I added outlier.shape = NA to remove outlier shapes from the plot and then set the both bottom and upper limits of y axis. This plot also shows this trend that the higher the acidity - the lower is quality.
+                                       
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+summary(quantile(wine_data$volatile.acidity, c(0.1, 0.9)))
+
+cor(wine_data$volatile.acidity, wine_data$quality)
+
+```
+
+I added outlier.shape = NA to remove outlier shapes from the plot and then set 
+the both bottom and upper limits of y axis. This plot also shows this trend that
+the higher the acidity - the lower is quality. I summarised only the values
+without outliers using quantile function. I get min value of 0.31 and max value
+of 0.75
 
 # Bivariate Analysis
 
-### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+### Talk about some of the relationships you observed in this part of the 
+investigation. How did the feature(s) of interest vary with other features in 
+the dataset?
 
-I checked my feature of interest (quality) against 2 variables: volatile.acidity and alcohol. The relationship with alcohol was that I saw a trend that higher alcohol percentage means higher quality. For volatile acidity I saw that high acidity means lower quality.
+I checked my feature of interest (quality) against 2 variables: 
+volatile.acidity and alcohol. The relationship with alcohol was that I saw a
+trend that higher alcohol percentage means higher quality. For volatile acidity
+I saw that high acidity means lower quality.
 
-### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+### Did you observe any interesting relationships between the other features 
+(not the main feature(s) of interest)?
 
-I only observed the relationships to quality, so no i did not observe interesting relationships between other features.
+I only observed the relationships to quality, so no i did not observe 
+interesting relationships between other features.
 
 ### What was the strongest relationship you found?
 
-In my main feature of interest I found out that quality has a strong relationship with alcohol percentage. As the alchohol percentage increases, so does quality of the wine. The correlation coeficent between these 2 variables is 0.48. The other strong relationship I found was between acids and pH which is not surprising at all.
+In my main feature of interest I found out that quality has a strong 
+relationship with alcohol percentage. As the alchohol percentage increases,
+so does quality of the wine. The correlation coeficent between these 2 variables
+is 0.48. The other strong relationship I found was between acids and pH which
+is not surprising at all.
 
 # Multivariate Plots Section
 
 ##14. Creating a new summary
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-library(dplyr)
+
 new_data <- wine_data %>%
   group_by(volatile.acidity, quality, pH, alcohol) %>%
   summarize()
@@ -280,57 +449,97 @@ I created a group of variables to easier summarise the data that I want.
 ```{r echo=FALSE}
 
 ggplot(aes(x = volatile.acidity, y = pH), data = new_data) +
-  geom_jitter(aes(color = alcohol)) +
+  geom_jitter() +
   facet_wrap( ~ quality)
 
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(volatile.acidity, quality, pH) %>%
+  summarize())
+cor(wine_data$volatile.acidity, wine_data$pH)
+```
 
-I wanted to see if there are some anomalies in residual.sugar vs pH relationship. I created a plot for each of the quality score in hoping to see something unusual. I can see that all of these plots has similar clustering and not much stands out. I can see a small trend that higher quality wines tend to be stronger.
+I wanted to see if there are some anomalies in residual.sugar vs pH 
+relationship. I created a plot for each of the quality score in hoping to see
+something unusual. I can see that all of these plots has similar clustering and
+not much stands out. I can see a small trend that higher quality wines tend to
+be stronger.
 
 ```{r echo=FALSE}
-
-ggplot(aes(x = volatile.acidity, y = pH), data = wine_data) +
-  geom_jitter(aes(color = alcohol)) +
-  facet_wrap( ~ quality)
+ggplot(aes(x = volatile.acidity, y = alcohol, color = factor(quality)),
+       data = wine_data) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE,size=1) +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='Quality'))
 
 ```
 
-I can't seem to find any unusual scatterings in this plot either.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(volatile.acidity, quality, alcohol) %>%
+  summarize())
+cor(wine_data$volatile.acidity, wine_data$alcohol)
+```
+
+From this plot I can see that the highest quality wines tend to heave more
+alcohol in it and it also is from low to medium acidity. Lower quality wines
+usualy have a wider range of acidity maxing at 1.6, it also tend to have less 
+alcohol in it. The weird thing is that as the best quality has the most alcohol,
+lowering the quality drasticaly reduces the alcohol percentage, and then at the
+lowest point in quality, the alcohol percentage drasticaly increases.
+
 
 ```{r echo=FALSE}
   
-ggplot(aes(x = volatile.acidity, y = quality), data = wine_data) +
-  geom_jitter(aes(color = alcohol))
+ggplot(aes(x = volatile.acidity, y = pH, color = factor(quality)),
+       data = wine_data) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE,size=1) +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='Quality'))
+
 
 ```
-
-From this plot I can suspect that volatile acidity lowers the quality.
-
-
-```{r echo=FALSE}
-  
-ggplot(aes(x = volatile.acidity, y = quality), data = wine_data) +
-  geom_jitter(aes(color = pH))
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(volatile.acidity, quality, pH) %>%
+  summarize())
+cor(wine_data$volatile.acidity, wine_data$pH)
 ```
+
+From this plot I can see that highest quality wines tend to have slightly higher
+level of ph while retaining medium range of volatile acidity. Lower quality 
+wines tend to have more acidity and a little bit lowe pH level than highest
+quality wine.
+
 ```{r echo=FALSE}
 ggplot(aes(x = volatile.acidity, y = quality), data = wine_data) +
   geom_jitter(aes(color = pH)) +
   geom_smooth(method = 'lm', color = 'Red')
 ```
 
-I can see that the higher pH levels might be lowering the quality, maybe because high pH means more acidity.
+I can see that the higher pH levels might be lowering the quality, maybe 
+because high pH means more acidity.
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
   
 ggplot(aes(x = volatile.acidity, y = quality), data = wine_data) +
   geom_line(aes(color = pH), stat = 'summary', fun.y = mean) + 
   geom_smooth()
 
 ```
+```{r echo=FALSE}
+summary(wine_data %>%
+  group_by(volatile.acidity, quality, pH) %>%
+  summarize())
+cor(wine_data$volatile.acidity, wine_data$quality)
+```
 
-This further tells me that there is correlation between quality and volatile acidity.
+This further tells me that there is correlation between quality and volatile 
+acidity.
 ```{r echo=FALSE}
 
 ggplot(aes(x = quality, y = alcohol), data = wine_data) +
@@ -338,8 +547,16 @@ ggplot(aes(x = quality, y = alcohol), data = wine_data) +
   geom_smooth(method = 'lm', color = 'Red')
 
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(volatile.acidity, quality, alcohol) %>%
+  summarize())
+cor(wine_data$volatile.acidity, wine_data$quality)
+```
 
-I can clearly see that increasing alcohol percentage we would increase quality, but I see no big trends petween volatile.acidity and these 2 variables. Maybe I can see something if I compare alcohol, quality and pH?
+I can clearly see that increasing alcohol percentage we would increase quality,
+but I see no big trends petween volatile.acidity and these 2 variables. Maybe
+I can see something if I compare alcohol, quality and pH?
 
 ```{r echo=FALSE}
 
@@ -347,74 +564,130 @@ ggplot(aes(x = quality, y = alcohol), data = wine_data) +
   geom_jitter(aes(color = pH)) +
   geom_smooth(method = 'lm', color = 'Red')
 ```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wine_data %>%
+  group_by(alcohol, quality, pH) %>%
+  summarize())
+cor(wine_data$alcohol, wine_data$quality)
+```
 
-I can see a small correlation between pH and alcohol, since lower pH wines tend to sit in the bottom of the plot, and that means lower alcohol could mean lower pH value.
+I can see a small correlation between pH and alcohol, since lower pH wines tend 
+to sit in the bottom of the plot, and that means lower alcohol could mean lower
+pH value.
 
 # Multivariate Analysis
 
-### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
-I was not surprised with the outcomes of my plots. I suspected that volatile acidity lowers the quality and higher alcohol concentration might increase the quality. Checking the correlation between these variables showed me that they are correlated, and the plots helped me to be sure about that.
+### Talk about some of the relationships you observed in this part of the 
+investigation. Were there features that strengthened each other in terms of 
+looking at your feature(s) of interest? 
+
+I was not surprised with the outcomes
+of my plots. I suspected that volatile acidity lowers the quality and higher 
+alcohol concentration might increase the quality. Checking the correlation
+between these variables showed me that they are correlated, and the plots
+helped me to be sure about that.
 
 ### Were there any interesting or surprising interactions between features?
-Before my analysis I was really thinking that lower alcohol percentage would mean better quality, but that proved me wrong.
-### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+Before my analysis I was really thinking that lower alcohol percentage would
+mean better quality, but that proved me wrong. I was also thinking that
+pH and volatile acidity should have very similar results for highest
+quality wines, but it seems that its not. Another interesting thing was that
+the lower quality wines has less and less alcohol in it, bus as the quality 
+reaches lowest point, the alcohol percentage drasticaly increases.
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the  \
+strengths and limitations of your model.
+
 No.
 
 # Final Plots and Summary
 
-> **Tip**: You've done a lot of exploration and have built up an understanding
-of the structure of and relationships between the variables in your dataset.
-Here, you will select three plots from all of your previous exploration to
-present here as a summary of some of your most interesting findings. Make sure
-that you have refined your selected plots for good titling, axis labels (with
-units), and good aesthetic choices (e.g. color, transparency). After each plot,
-make sure you justify why you chose each plot by describing what it shows.
-
 ### Plot One
-```{r echo=FALSE, Plot_One}
+```{r echo=FALSE, Plot_One, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = quality, y = volatile.acidity), data = wine_data) +
   geom_boxplot(aes(group=quality), outlier.shape = NA, fill = I('#F79420')) +
-  scale_y_continuous(limits = quantile(wine_data$volatile.acidity, c(0.1, 0.9))) +
-  labs(title = "Volatile acidity relationship with quality", x = 'Quality of wine', y = 'Amount of acetic acid in wine')
+  scale_y_continuous(limits = quantile(wine_data$volatile.acidity, c(0.1, 0.9)
+                                       )) +
+  labs(title = "Volatile acidity relationship with quality",
+       x = 'Quality of wine', y = 'Amount of acetic acid in wine')
 
 
 ```
 
 ### Description One
-I wanted to see what is the relationship between acidity and quality. I was hoping for this relationship to be somehow neutral. To see the relationship I plotted a boxplot. The boxplot had many outliers and was interfering with my means, so I had to remove the outliers to see the real relationship. After plotting the final boxplot I see clear tendency that increasing acidity - decreases the quality.
+I wanted to see what is the relationship between acidity and quality. I was
+hoping for this relationship to be somehow neutral. To see the relationship 
+I plotted a boxplot. The boxplot had many outliers and was interfering with 
+my means, so I had to remove the outliers to see the real relationship. After
+plotting the final boxplot I see clear tendency that increasing 
+acidity - decreases the quality.
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
 
-ggplot(aes(x = volatile.acidity, y = pH), data = wine_data) +
-  geom_jitter(aes(color = alcohol)) +
-  facet_wrap( ~ quality) +
-  labs(title = "Scatterplot grid", x = 'Amount of acetic acid in wine', y = 'Wine pH')
-  
+ggplot(aes(x = volatile.acidity, y = alcohol, color = factor(quality)),
+       data = wine_data) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE,size=1) +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='Quality')) +
+  labs(title = "Volatile acidity relationship with alcohol and quality",
+       x = 'Volatile acidity g / dm^3', y = 'Alcohol %')
+
+
 ```
 
 ### Description Two
 
-This plot shows that there are no significant relationships betweem pH, alcohol and quality. All of these plots are similary scattered. One thing that stands out that lower quality wines tend to be more in the right of the plot, which means higher acidity. The alcohol variable doesn't seem to stand out that much compared to other variables.
+Interpreting this plot I found out that the highest quality wine has the most
+alcohol in it. As the quality decreases, so does alcohol percentage and volatile
+acidity. Reaching lowest point, the alcohol percentage drasticaly jumps higher
+at higher levels of volatile acidity which I find strange.
 
 ### Plot Three
 ```{r echo=FALSE, Plot_Three}
 
-ggplot(aes(x = quality, y = alcohol), data = wine_data) +
-  geom_jitter(aes(color = pH)) +
-  geom_smooth(method = 'lm', color = 'Red') +
-  labs(title = "Quality distribution compared to alcohol and pH", x = 'Quality of wine', y = 'Amount of alcohol in wine')
+ggplot(aes(x = volatile.acidity, y = pH, color = factor(quality)),
+       data = wine_data) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE,size=1) +
+  scale_color_brewer(type='seq',
+                   guide=guide_legend(title='Quality')) +
+  labs(title = "Volatile acidity relationship with pH value and quality",
+       x = 'Volatile acidity g / dm^3', y = 'pH value')
 
 ```
 
 ### Description Three
-In this plot I noticed that there is a correlation between wine quality and alcohol percentage. There is a small influance from pH aswell. The higher the quality, the more alcohol the wine has, I can also see a small trend of higher pH levels staying in the top of the scatterplot and bigger clusters of low pH in the bottom.
+From this plot I can see that highest quality wines tend to have slightly higher
+level of ph while retaining medium rango of volatile acidity. Lower quality 
+wines tend to have more acidity and a little bit lowe pH level than highest
+quality wine.
+
+In this plot I noticed that the highest quality wines has higher level of pH and
+lower levels of volatile acidity, which is weird because I thought that
+increasing the pH should also increase the volatile acidity. As the quality 
+goes down, the volatile acidity levels increase and pH levels stays lower that
+in highest quality wines.
+
+
 
 # Reflection
-The Red Wine Quality dataset includes 1599 observations with 13 variables. As I was exploring the data set I found that the most interesting variable for me is quality, which I based my project on. I Tried to check pH, alcohol, acidity variables against quality to see for some interesting correlations.  
+The Red Wine Quality dataset includes 1599 observations with 13 variables. As 
+I was exploring the data set I found that the most interesting variable for me
+is quality, which I based my project on. I Tried to check pH, alcohol, acidity
+variables against quality to see for some interesting correlations.  
 
-I strugled with some of the outliers screwing my boxplots, but later I found out how to set the limits on Y axis using quantile functiont by removing top 10% and bottom 10% of data from the plot. Another difficulty was that the dataframe is tiny compared to others, and 1599 observations doesn't make beutifull scatterplots. Besides these problems all went well and I noticed that the biggest correlations between quality was alcohol and acidity. Higher alcohol improves the quality while acidity decreases it.
+I strugled with some of the outliers screwing my boxplots, but later I found
+out how to set the limits on Y axis using quantile functiont by removing top 
+10% and bottom 10% of data from the plot. Another difficulty was that the 
+dataframe is tiny compared to others, and 1599 observations doesn't make
+beutifull scatterplots. Besides these problems all went well and I noticed 
+that the biggest correlations between quality was alcohol and acidity. 
+Higher alcohol improves the quality while acidity decreases it.
 
-For better analysis in the future I would try to test all of the variables and maybe join the white wine and red wine datasets to see evem bigger trends.
+For better analysis in the future I would try to test all of the variables 
+and maybe join the white wine and red wine datasets to see evem bigger trends.
 
